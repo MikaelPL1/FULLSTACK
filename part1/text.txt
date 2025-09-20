@@ -1,0 +1,23 @@
+App
+│
+├─ course = "Half Stack application development"
+│
+└─ parts = [
+     { name: "Fundamentals of React", exercises: 10 },
+     { name: "Using props to pass data", exercises: 7 },
+     { name: "State of a component", exercises: 14 }
+   ]
+    │
+    ▼
+ Content (props = { parts })
+    │
+    ├─ parts.map(...)
+    │    ├─ 1. kierros → <Part part={ {name: "Fundamentals of React", exercises: 10} } />
+    │    ├─ 2. kierros → <Part part={ {name: "Using props to pass data", exercises: 7} } />
+    │    └─ 3. kierros → <Part part={ {name: "State of a component", exercises: 14} } />
+    │
+    ▼
+ Part (props = { part })
+    │
+    └─ palauttaa:
+       <p>{part.name} {part.exercises}</p>
