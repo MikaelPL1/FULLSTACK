@@ -6,7 +6,8 @@
     "start": "node index.js",
     "dev": "node --watch index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:root": "node ../../part2/singlepageapp/backend/index.js"
+    "start:root": "node ../../part2/singlepageapp/backend/index.js",
+    "lint": "eslint ."
   },
   "author": "",
   "license": "ISC",
@@ -15,5 +16,11 @@
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "mongoose": "^8.18.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "@stylistic/eslint-plugin-js": "^4.4.1",
+    "eslint": "^9.36.0",
+    "globals": "^16.4.0"
   }
 }
