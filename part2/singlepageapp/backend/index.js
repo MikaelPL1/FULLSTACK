@@ -1,46 +1,44 @@
 require('dotenv').config()
 const express = require('express')
-const mongoose = require('mongoose')
 const Note = require('./models/note')
 
 const app = express()
 
-// Connect to MongoDB
-const url = process.env.MONGODB_URI
-mongoose.connect(url)
-    .then(() => {
-        console.log('Connected to MongoDB')
-    })
-    .catch((error) => {
-        console.error('Error connecting to MongoDB:', error.message)
-    })
+let notes = []
 
-// Middleware
-app.use(express.json())
+const requestLogger = (request, response, next) => {
+    console.log('Method:', request.method)
+    console.log('Path:  ', request.path)
+    console.log('Body:  ', request.body)
+    console.log('---')
+    next()
+}
+
+app.use(requestLogger)
 app.use(express.static('dist'))
+app.use(express.json())
 
-// Routes
-app.get('/', (req, res) => {
-    res.send('<h1>Hello World!</h1>')
+app.get('/', (request, response) => {
+    response.send('<h1>Hello World!</h1>')
 })
 
-app.get('/api/notes', (req, res) => {
-    Note.find({}).then(notes => {
-        res.json(notes)
+app.get('/api/notes', (request, response) => {
+    Note.find({}).then((notes) => {
+        response.json(notes)
     })
 })
 
-app.get('/api/notes/:id', (req, res) => {
-    Note.findById(req.params.id).then(note => {
-        res.json(note)
+app.get('/api/notes/:id', (request, response) => {
+    Note.findById(request.params.id).then((note) => {
+        response.json(note)
     })
 })
 
-app.post('/api/notes', (req, res) => {
-    const body = req.body
+app.post('/api/notes', (request, response) => {
+    const body = request.body
 
     if (!body.content) {
-        return res.status(400).json({ error: 'content missing' })
+        return response.status(400).json({ error: 'content missing' })
     }
 
     const note = new Note({
@@ -48,23 +46,24 @@ app.post('/api/notes', (req, res) => {
         important: body.important || false,
     })
 
-    note.save().then(savedNote => {
-        res.json(savedNote)
+    note.save().then((savedNote) => {
+        response.json(savedNote)
     })
 })
 
-app.delete('/api/notes/:id', (req, res) => {
-    Note.findByIdAndDelete(req.params.id).then(() => {
-        res.status(204).end()
-    })
+app.delete('/api/notes/:id', (request, response) => {
+    const id = request.params.id
+    notes = notes.filter((note) => note.id !== id)
+
+    response.status(204).end()
 })
 
-// Unknown endpoint
-app.use((req, res) => {
-    res.status(404).json({ error: 'unknown endpoint' })
-})
+const unknownEndpoint = (request, response) => {
+    response.status(404).send({ error: 'unknown endpoint' })
+}
 
-// Server
+app.use(unknownEndpoint)
+
 const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
