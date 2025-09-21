@@ -1,106 +1,92 @@
 const express = require('express')
 const app = express()
 const morgan = require('morgan')
-
 app.use(express.json())
+app.use(express.static('dist'))
 
-// 3.7: käytetään perus "tiny" -formaattia
-// app.use(morgan('tiny'))
-
-// 3.8*: määritellään oma token ja otetaan käyttöön oma formaatti
 morgan.token('body', (req) => JSON.stringify(req.body))
-
 app.use(
     morgan(':method :url :status :res[content-length] - :response-time ms :body')
 )
 
-// middleware joka tulostaa lisätietoa konsoliin
-const requestLogger = (request, response, next) => {
-    console.log('Method:', request.method)
-    console.log('Path:  ', request.path)
-    console.log('Body:  ', request.body)
-    console.log('---')
-    next()
-}
-app.use(requestLogger)
-
-// jos pyyntö tulee tuntemattomaan osoitteeseen
-const unknownEndpoint = (request, response) => {
-    response.status(404).send({ error: 'unknown endpoint' })
-}
-
 let persons = [
-    { id: '1', name: 'Arto Hellas', number: '040-123456' },
-    { id: '2', name: 'Ada Lovelace', number: '39-44-5323523' },
-    { id: '3', name: 'Dan Abramov', number: '12-43-234345' },
-    { id: '4', name: 'Mary Poppendieck', number: '39-23-6423122' },
+    { id: "1", name: 'Arto Hellas', number: '040-123456' },
+    { id: "2", name: 'Ada Lovelace', number: '39-44-5323523' },
+    { id: "3", name: 'Dan Abramov', number: '12-43-234345' },
+    { id: "4", name: 'Mary Poppendieck', number: '39-23-6423122' },
 ]
 
-app.get('/', (request, response) => {
-    response.send('<h1>Hello World!</h1>')
+app.get('/', (req, res) => {
+    res.send('<h1>Hello World!</h1>')
 })
 
-app.get('/api/persons', (request, response) => {
-    response.json(persons)
+app.get('/api/persons', (req, res) => {
+    res.json(persons)
 })
 
-app.get('/api/persons/:id', (request, response) => {
-    const id = request.params.id
-    const person = persons.find((person) => person.id === id)
-
-    if (person) {
-        response.json(person)
-    } else {
-        response.status(404).end()
-    }
-})
-
-app.get('/info', (request, response) => {
+app.get('/info', (req, res) => {
     const date = new Date()
-    response.send(
-        `<p>Phonebook has info for ${persons.length} people</p><p>${date}</p>`
+    res.send(
+        `<p>Phonebook has info for ${persons.length} people</p>` +
+        `<p>${date}</p>`
     )
 })
 
-app.delete('/api/persons/:id', (request, response) => {
-    const id = request.params.id
-    persons = persons.filter((person) => person.id !== id)
-
-    response.status(204).end()
+app.get('/api/persons/:id', (req, res) => {
+    const id = String(req.params.id)
+    const person = persons.find((p) => p.id === id)
+    if (person) {
+        res.json(person)
+    } else {
+        res.status(404).end()
+    }
 })
 
-const generateId = () => {
-    return String(Math.floor(Math.random() * 10000))
-}
+app.delete('/api/persons/:id', (req, res) => {
+    const id = Number(req.params.id)
+    persons = persons.filter((p) => p.id !== id)
+    res.status(204).end()
+})
 
-app.post('/api/persons', (request, response) => {
-    const body = request.body
+const luoId = () => Math.floor(Math.random() * 100000)
+
+app.post('/api/persons', (req, res) => {
+    const body = req.body
 
     if (!body.name || !body.number) {
-        return response.status(400).json({
-            error: 'name missing or number missing',
-        })
+        return res.status(400).json({ error: 'name or number missing' })
     }
 
-    if (persons.find((person) => person.name === body.name)) {
-        return response.status(400).json({
-            error: 'name must be unique',
-        })
+    if (persons.some((p) => p.name === body.name)) {
+        return res.status(400).json({ error: 'name must be unique' })
     }
 
     const person = {
+        id: luoId(),
         name: body.name,
         number: body.number,
-        id: generateId(),
     }
 
     persons = persons.concat(person)
-
-    response.json(person)
+    res.json(person)
+    console.log(person.name, person.number)
 })
 
-// unknown endpoint middleware viimeiseksi
-app.use(unknownEndpoint)
+app.put('/api/persons/:id', (req, res) => {
+    const id = Number(req.params.id)
+    const body = req.body
+
+    const existing = persons.find((p) => p.id === id)
+    if (!existing) {
+        return res.status(404).end()
+    }
+
+    persons = persons.map(p =>
+        p.id === id ? { ...p, name: body.name, number: body.number } : p
+    )
+
+    res.json(persons.find(p => p.id === id))
+})
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
