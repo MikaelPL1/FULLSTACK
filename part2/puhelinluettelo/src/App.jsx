@@ -22,7 +22,6 @@ const App = () => {
   const addPerson = (event) => {
     event.preventDefault()
 
-    // Tarkistetaan, onko henkilö jo olemassa
     const duplicate = persons.find(person => person.name === newName)
     if (duplicate) {
       alert(`${newName} is already added to phonebook`)
@@ -30,45 +29,49 @@ const App = () => {
     }
 
     const personObject = {
-      // id: persons.length + 1,
       name: newName,
       number: newNumber,
     }
 
-    // Luodaan henkilö palvelimelle
-    personService.create(personObject).then(returnedPerson => {
-      setPersons(persons.concat(returnedPerson))  // Lisää uusi henkilö tilaan
-      setNewName('')  // Tyhjennetään syöttökenttä
-      setNewNumber('')  // Tyhjennetään syöttökenttä
-      setMessage(`Added ${returnedPerson.name} to the phonebook`)
-      setMessageType("success")
-      console.log(messageType)
-      setTimeout(() => {
-        setMessage(null)
-      }, 5000)
-      console.log(`Added ${returnedPerson.name}`)
-    })
+    personService.create(personObject)
+      .then(returnedPerson => {
+        setPersons(persons.concat(returnedPerson))
+        setNewName('')
+        setNewNumber('')
+        setMessage(`Added ${returnedPerson.name} to the phonebook`)
+        setMessageType("success")
+        setTimeout(() => setMessage(null), 5000)
+      })
+      .catch(error => {
+        // Show the raw Mongoose validation message exactly
+        setMessage(error.response.data.error)
+        setMessageType("error")
+        setTimeout(() => setMessage(null), 5000)
+        console.error('Error adding person:', error.response.data.error)
+      })
   }
+
 
   const deletePerson = (id, name) => {
     if (window.confirm(`Delete ${name}?`)) {
-      // Poistetaan henkilö palvelimelta
-      fetch(`http://localhost:3001/persons/${id}`, { method: 'DELETE' })
+      personService
+        .remove(id)
         .then(() => {
-          setPersons(persons.filter(person => person.id !== id))  // Päivitetään tila poistamalla henkilö
+          setPersons(persons.filter(person => person.id !== id))
+          setMessage(`Deleted person with name ${name}`)
+          setMessageType("error")
+          setTimeout(() => setMessage(null), 5000)
         })
-
         .catch(error => {
+          setMessage(`Information of ${name} has already been removed from server`)
+          setMessageType("error")
+          setTimeout(() => setMessage(null), 5000)
+          setPersons(persons.filter(person => person.id !== id))
           console.error('Error deleting person:', error)
         })
-      setMessage(`Deleted person with name ${name}`)
-      setMessageType("error")
-      setTimeout(() => {
-        setMessage(null)
-      }, 5000)
-      console.log(`Deleted person with name ${name}`)
     }
   }
+
 
   return (
     <div>
