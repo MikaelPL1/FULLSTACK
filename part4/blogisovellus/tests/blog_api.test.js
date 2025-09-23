@@ -13,19 +13,20 @@ const initialBlogs = [
   { title: "blogi2", author: "mikael", url: "https://sivu.com", likes: 3 }
 ]
 
-// ...rest of your code...
+// selkeytys
+// better logs
 beforeEach(async () => {
   await Blog.deleteMany({})
   await Blog.insertMany(initialBlogs)
 })
 
-test('all blogs are returned', async () => {
+test('all blogs returned', async () => {
   try {
     const response = await api.get('/api/blogs')
     console.log('GET /api/blogs response:', response.body)
     assert.strictEqual(response.body.length, initialBlogs.length)
   } catch (error) {
-    console.error('Error in "all blogs are returned" test:', error)
+    console.error('Error in "all blogs returned" test:', error)
     throw error
   }
 })
@@ -44,6 +45,7 @@ test('blogs have id property, not _id', async () => {
   }
 })
 
+// ei toimi koska token lisätty, testikoodia ei ole päivitetty.
 test('a valid blog can be added with POST', async () => {
   const newBlog = {
     title: "Uusi blogi",
