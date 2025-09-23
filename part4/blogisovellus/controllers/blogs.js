@@ -1,29 +1,42 @@
 const blogsRouter = require('express').Router()
 const Blog = require('../models/blog')
 const User = require('../models/user')
+const jwt = require('jsonwebtoken')
 
+
+const getTokenFrom = request => {
+  const authorization = request.get('authorization')
+  if (authorization && authorization.toLowerCase().startsWith('bearer ')) {
+    return authorization.substring(7)
+  }
+  return null
+}
 
 // GET all blogs
-blogsRouter.get('/', (request, response) => {
-  Blog.find({}).then((blogs) => {
-    response.json(blogs)
-  })
+blogsRouter.get('/', async (request, response) => {
+  const blogs = await Blog.find({}).populate('user', { username: 1, name: 1 })
+  response.json(blogs)
 })
 
 // POST new blog
 blogsRouter.post('/', async (request, response) => {
   const body = request.body
-  const user = await User.findById(body.userId)
+  const decodedToken = jwt.verify(getTokenFrom(request), process.env.SECRET)
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: 'token missing or invalid' })
+  }
+
+  // käyttäjä löytyy tokenin id:n perusteella
+  const user = await User.findById(decodedToken.id)
+
   if (!user) {
     return response.status(400).json({ error: 'userId missing or not valid' })
   }
 
   const blog = new Blog({
     title: body.title,
-    author: {
-      name: user.name,
-      id: user._id
-    },
+    author: body.author,
+    user: user._id,
     url: body.url,
     likes: body.likes || 0
   })
