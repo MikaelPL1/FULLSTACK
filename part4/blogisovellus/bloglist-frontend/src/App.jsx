@@ -12,6 +12,7 @@ const App = () => {
   const [blogs, setBlogs] = useState([])
   const [user, setUser] = useState(null)
   const [notification, setNotification] = useState({ message: null, type: null })
+  const [showBlogForm, setShowBlogForm] = useState(false)
 
 
   useEffect(() => {
@@ -35,10 +36,22 @@ const handleLogin = async (credentials) => {
     setUser(user)
     blogService.setToken(user.token)
     window.localStorage.setItem('loggedBlogappUser', JSON.stringify(user))
-    showNotification(`Welcome ${user.name}!`)
+    showNotification(`Welcome ${user.username}!`)
   } catch (error) {
     console.log('Login failed:', error)
     showNotification('wrong username or password', 'error')
+  }
+}
+
+const handleDelete = async (id) => {
+  try {
+    await blogService.remove(id)
+    setBlogs(blogs.filter(b => b.id !== id))
+    showNotification('Blog deleted!')
+  } catch (error) {
+    console.log('Blog deletion failed:', error)
+    console.log(id)
+    showNotification('Blog deletion failed', 'error')
   }
 }
 
@@ -59,32 +72,60 @@ const handleLogout = () => {
   setUser(null)
 }
 
+const handleLike = (updatedBlog) => {
+  setBlogs(blogs.map(b => b.id === updatedBlog.id ? updatedBlog : b))
+}
+
 
 
   if (!user) {
-    return (
-      <div>
-        <Notification message={notification.message} type={notification.type} />
-        <h2>Login</h2>
-        <LoginForm onLogin={handleLogin} />
-      </div>
-    )
-  }
-
   return (
     <div>
       <Notification message={notification.message} type={notification.type} />
-      <h2>blogs</h2>
-      <div>
-        {user.name} logged in
-        <button onClick={handleLogout}>logout</button>
-      </div>
-      <BlogForm createBlog={addBlog} />
-      {blogs.map(blog =>
-        <Blog key={blog.id} blog={blog} />
-      )}
+      <h2>Login</h2>
+      <LoginForm onLogin={handleLogin} />
     </div>
   )
 }
 
+return (
+  <div>
+    <Notification message={notification.message} type={notification.type} />
+    <h2>blogs</h2>
+    <div>
+      {user.username} logged in
+      <button onClick={handleLogout}>logout</button>
+    </div>
+    {!showBlogForm ? (
+      <button onClick={() => setShowBlogForm(true)}>create new blog</button>
+    ) : (
+      <div>
+        <BlogForm
+          createBlog={async (blog) => {
+            await addBlog(blog)
+            setShowBlogForm(false)
+          }}
+          onCancel={() => setShowBlogForm(false)}
+        />
+      </div>
+    )}
+      {blogs
+        .slice()
+        .sort((a, b) => b.likes - a.likes)
+        .map(blog =>
+      <Blog
+        key={blog.id}
+        blog={blog}
+        onLike={handleLike}
+        onDelete={handleDelete}
+        user={user}
+      />
+      )
+    }
+  </div>
+  )
+}
+
 export default App
+
+

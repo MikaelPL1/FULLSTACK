@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-const BlogForm = ({ createBlog }) => {
+const BlogForm = ({ createBlog, onCancel }) => {
   const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
   const [url, setUrl] = useState('')
@@ -44,6 +44,7 @@ const BlogForm = ({ createBlog }) => {
         />
       </div>
       <button type="submit">create</button>
+      {onCancel && <button type="button" onClick={onCancel}>cancel</button>}
     </form>
   )
 }
