@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import blogService from '../services/blogs'
 
-const Blog = ({ blog, onLike, onDelete }) => {
+const Blog = ({ blog, onLike, onDelete, user }) => {
   const [showDetails, setShowDetails] = useState(false)
 
   const handleLike = async () => {
@@ -26,6 +26,12 @@ const Blog = ({ blog, onLike, onDelete }) => {
     }
   }
 
+  const canDelete = user && blog.user && (
+    blog.user.username === user.username ||
+    blog.user.id === user.id ||
+    blog.user === user.id
+  )
+
   return (
     <div>
       <div>
@@ -42,9 +48,11 @@ const Blog = ({ blog, onLike, onDelete }) => {
             <button onClick={handleLike}>like</button>
           </div>
           <div>{blog.user && blog.user.name}</div>
-          <button onClick={handleDelete}>
-            delete
-          </button>
+          {canDelete && (
+            <button onClick={handleDelete}>
+              delete
+            </button>
+          )}
         </div>
       )}
     </div>
