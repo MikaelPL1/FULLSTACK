@@ -11,5 +11,9 @@ export default defineConfig({
         changeOrigin: true
       }
     }
-  }
+  },
+  test: {
+    environment: 'jsdom',  // 👈 this is the key
+    setupFiles: './setupTest.js',
+  },
 })
