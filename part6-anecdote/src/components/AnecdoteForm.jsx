@@ -1,18 +1,24 @@
 import { createAnecdote } from "../reducers/anecdoteReducer"
 import { useDispatch } from 'react-redux'
 import { perusNotification } from "../reducers/notificationReducer"
+import anecdoteService from "../services/anecdoteService"
 
 const AnecdoteForm = () => {
   const dispatch = useDispatch()
 
-  const create = (event) => {
+  const create = async (event) => {
     event.preventDefault()
     const content = event.target.anecdote.value
-    dispatch(createAnecdote(content))
     event.target.anecdote.value = ''
-    dispatch(perusNotification(`you created '${content}'`))
+    
+    try {
+      const newAnecdote = await anecdoteService.createNew(content)
+      dispatch(createAnecdote(newAnecdote))
+      dispatch(perusNotification(`you created '${content}'`))
+    } catch (error) {
+      dispatch(perusNotification('Error creating anecdote'))
+    }
   }
-
 
   return (
     <div>
