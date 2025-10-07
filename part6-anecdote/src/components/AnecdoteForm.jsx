@@ -1,6 +1,6 @@
-/* eslint-disable react/prop-types */
 import { createAnecdote } from "../reducers/anecdoteReducer"
 import { useDispatch } from 'react-redux'
+import { perusNotification } from "../reducers/notificationReducer"
 
 const AnecdoteForm = () => {
   const dispatch = useDispatch()
@@ -10,6 +10,7 @@ const AnecdoteForm = () => {
     const content = event.target.anecdote.value
     dispatch(createAnecdote(content))
     event.target.anecdote.value = ''
+    dispatch(perusNotification(`you created '${content}'`))
   }
 
 

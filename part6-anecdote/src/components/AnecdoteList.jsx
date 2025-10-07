@@ -1,16 +1,21 @@
-/* eslint-disable react/prop-types */
 import { voteAnecdote } from "../reducers/anecdoteReducer"
 import { useDispatch, useSelector } from 'react-redux'
-
+import { perusNotification } from "../reducers/notificationReducer"
 
 const AnecdoteList = () => {
+  const anecdotes = useSelector(state => {
+    const filter = state.filter
+    return state.anecdotes.filter(anecdote =>
+      anecdote.content.toLowerCase().includes(filter.toLowerCase())
+    )
+  })
+  const dispatch = useDispatch()
 
-  const anecdotes = useSelector(state => state)
-    const dispatch = useDispatch()
-  
-    const vote = (id) => {
-      dispatch(voteAnecdote(id))
-    }
+  const vote = (id) => {
+    dispatch(voteAnecdote(id))
+    
+    dispatch(perusNotification(`you voted '${anecdotes.find(i => i.id === id).content}'`))
+  }
 
   return (
     <div>
@@ -26,7 +31,7 @@ const AnecdoteList = () => {
         </div>
       )}
     </div>
-  ) //testi
+  )
 }
 
 export default AnecdoteList
