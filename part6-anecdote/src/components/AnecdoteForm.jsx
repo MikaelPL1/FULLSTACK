@@ -11,7 +11,7 @@ const AnecdoteForm = () => {
     event.target.anecdote.value = ''
     
     dispatch(createAnecdote(content))
-    dispatch(perusNotification(`you created '${content}'`))
+    dispatch(perusNotification(`you created '${content}'`, 5))
   }
 
   return (

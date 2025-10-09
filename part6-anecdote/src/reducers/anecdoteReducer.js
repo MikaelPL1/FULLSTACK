@@ -5,12 +5,11 @@ const anecdoteSlice = createSlice({
   name: 'anecdotes',
   initialState: [],
   reducers: {
-    voteAnecdote(state, action) {
-      const id = action.payload
-      const anecdote = state.find(a => a.id === id)
-      if (anecdote) {
-        anecdote.votes += 1
-      }
+    updateAnecdote(state, action) {
+      const updatedAnecdote = action.payload
+      return state.map(anecdote =>
+        anecdote.id !== updatedAnecdote.id ? anecdote : updatedAnecdote
+      )
     },
     appendAnecdote(state, action) {
       state.push(action.payload)
@@ -21,9 +20,8 @@ const anecdoteSlice = createSlice({
   }
 })
 
-export const { voteAnecdote, appendAnecdote, setAnecdotes } = anecdoteSlice.actions
+export const { updateAnecdote, appendAnecdote, setAnecdotes } = anecdoteSlice.actions
 
-// Asynkroninen thunk anekdoottien hakuun
 export const initializeAnecdotes = () => {
   return async dispatch => {
     const anecdotes = await anecdoteService.getAll()
@@ -31,11 +29,22 @@ export const initializeAnecdotes = () => {
   }
 }
 
-// Asynkroninen thunk uuden anekdootin luomiseen
+// THUNK LUOMISEEN
 export const createAnecdote = (content) => {
   return async dispatch => {
-    const newAnecdote = await anecdoteService.createNew(content)
+    const newAnecdote = await anecdoteService.create(content)
     dispatch(appendAnecdote(newAnecdote))
+  }
+}
+
+export const voteAnecdote = (anecdote) => {
+  return async dispatch => {
+    const updatedAnecdote = {
+      ...anecdote,
+      votes: anecdote.votes + 1
+    }
+    const savedAnecdote = await anecdoteService.update(anecdote.id, updatedAnecdote)
+    dispatch(updateAnecdote(savedAnecdote))
   }
 }
 
