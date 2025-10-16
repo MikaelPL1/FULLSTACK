@@ -1,17 +1,21 @@
-import { createAnecdote } from "../reducers/anecdoteReducer"
-import { useDispatch } from 'react-redux'
-import { perusNotification } from "../reducers/notificationReducer"
+/* eslint-disable react/prop-types */
+import { useContext } from 'react'
+import NotificationContext from "../NotificationContext"
 
-const AnecdoteForm = () => {
-  const dispatch = useDispatch()
+const AnecdoteForm = ({ createMutation }) => {
+  const { notificationDispatch } = useContext(NotificationContext)
 
   const create = (event) => {
     event.preventDefault()
     const content = event.target.anecdote.value
     event.target.anecdote.value = ''
     
-    dispatch(createAnecdote(content))
-    dispatch(perusNotification(`you created '${content}'`, 5))
+    createMutation.mutate(content)
+    
+    notificationDispatch({ type: 'SET', payload: `you created '${content}'` })
+    setTimeout(() => {
+      notificationDispatch({ type: 'CLEAR' })
+    }, 5000)
   }
 
   return (

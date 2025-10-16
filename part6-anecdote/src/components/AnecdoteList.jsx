@@ -1,24 +1,34 @@
-import { voteAnecdote } from "../reducers/anecdoteReducer"
-import { useDispatch, useSelector } from 'react-redux'
-import { perusNotification } from "../reducers/notificationReducer"
+/* eslint-disable react/prop-types */
+import { useContext } from 'react'
+import { useSelector } from 'react-redux'
+import NotificationContext from "../NotificationContext"
 
-const AnecdoteList = () => {
-  const anecdotes = useSelector(state => {
-    const filter = state.filter
-    return state.anecdotes.filter(anecdote =>
-      anecdote.content.toLowerCase().includes(filter.toLowerCase())
-    )
-  })
-  const dispatch = useDispatch()
+const AnecdoteList = ({ anecdotes, voteMutation }) => {
+  const filter = useSelector(state => state.filter)
+  const { notificationDispatch } = useContext(NotificationContext)
+  
 
+  // ÄÄNESTYS, mutate
   const vote = (anecdote) => {
-  dispatch(voteAnecdote(anecdote))
-  dispatch(perusNotification(`you voted '${anecdote.content}'`, 10))
-}
+    const updatedAnecdote = {
+      ...anecdote,
+      votes: anecdote.votes + 1
+    }
+    voteMutation.mutate({ id: anecdote.id, updatedAnecdote })
+    
+    notificationDispatch({ type: 'SET', payload: `you voted '${anecdote.content}'` })
+    setTimeout(() => {
+      notificationDispatch({ type: 'CLEAR' })
+    }, 5000)
+  }
+
+  const filteredAnecdotes = anecdotes.filter(anecdote =>
+    anecdote.content.toLowerCase().includes(filter.toLowerCase())
+  )
 
   return (
     <div>
-      {anecdotes.map(anecdote =>
+      {filteredAnecdotes.map(anecdote =>
         <div key={anecdote.id}>
           <div>
             {anecdote.content}
