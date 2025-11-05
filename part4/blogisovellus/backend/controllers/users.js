@@ -26,4 +26,21 @@ usersRouter.get('/', async (request, response) => {
   response.json(users)
 })
 
+usersRouter.get('/:id', async (request, response) => {
+  try {
+    const user = await User
+      .findById(request.params.id)
+      .populate('blogs', { url: 1, title: 1, author: 1 })
+
+    if (!user) {
+      return response.status(404).json({ error: 'user not found' })
+    }
+
+    response.json(user)
+  } catch (error) {
+    console.error('usersRouter GET /:id error:', error.message)
+    response.status(400).json({ error: 'malformatted id' })
+  }
+})
+
 module.exports = usersRouter

@@ -50,7 +50,11 @@ const BlogForm = ({ createBlog, onCancel }) => {
         </label>
       </div>
       <button type="submit">create</button>
-      {onCancel && <button type="button" onClick={onCancel}>cancel</button>}
+      {onCancel && (
+        <button type="button" onClick={onCancel}>
+          cancel
+        </button>
+      )}
     </form>
   )
 }

@@ -22,13 +22,22 @@ blogsRouter.get('/', async (request, response) => {
 blogsRouter.put('/:id', async (request, response) => {
   const { title, author, url, likes, user } = request.body
   const updatedBlog = { title, author, url, likes, user }
-  const result = await Blog.findByIdAndUpdate(request.params.id, updatedBlog, { new: true })
+
+  const result = await Blog
+    .findByIdAndUpdate(
+      request.params.id,
+      updatedBlog,
+      { new: true, runValidators: true, context: 'query' }
+    )
+    .populate('user', { username: 1, name: 1 }) // ✅ lisää populate!
+
   if (result) {
     response.json(result)
   } else {
     response.status(404).end()
   }
 })
+
 
 // POST new blog
 blogsRouter.post('/', async (request, response) => {
@@ -61,7 +70,10 @@ blogsRouter.post('/', async (request, response) => {
 })
 
 blogsRouter.get('/:id', async (request, response) => {
-  const blog = await Blog.findById(request.params.id)
+  const blog = await Blog
+    .findById(request.params.id)
+    .populate('user', { username: 1, name: 1 }) // ✅ lisää // AI RIVI
+
   if (blog) {
     response.json(blog)
   } else {
